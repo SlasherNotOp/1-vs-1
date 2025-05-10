@@ -25,6 +25,10 @@ const authController = new AuthController(prisma);
 const userController = new UserController(prisma);
 const matchController = new MatchController(prisma);
 
+app.get('/',(req,res)=>{
+  res.send('1vs1 is working')
+})
+
 app.use('/api/auth', authRoutes(authController));
 app.use('/api/user', userRoutes(userController));
 app.use('/api/match', matchRoutes(matchController));
