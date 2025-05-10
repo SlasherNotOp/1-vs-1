@@ -38,14 +38,12 @@ app.use('/api/match', matchRoutes(matchController));
 const server = http.createServer(app);
 
 // ...and attach WSS on the same server under `/ws`
-const port=(Number(env.PORT)+1)
-const wss = new WebSocketServer({ port:port, path: '/' });
+const wss = new WebSocketServer({ server, path: '/ws' });
 
 // Initialize our WebSocketManager
 new WebSocketManager(wss).initialize();
-console.log('WebSocket server running on port: ',port );
 
 // Start listening
 server.listen(env.PORT, () =>
-  console.log(`HTTP  server running on port ${env.PORT}`)
+  console.log(`HTTP + WSS server running on port ${env.PORT}`)
 );
