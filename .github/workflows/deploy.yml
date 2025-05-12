@@ -29,3 +29,4 @@ jobs:
           npm install
           cd ..
           pm2 restart all
+        
