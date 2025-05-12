@@ -37,6 +37,8 @@ class WebSocketManager {
             return this.handleFindMatch(ws);
           case 'cancel_matchmaking':
             return this.handleCancel(ws);
+          case 'cancel_match':
+            return this.handleCancelMatch(ws,payload);
           case 'submit_code':
             return this.handleSubmit(ws, payload);
           default:
@@ -94,6 +96,60 @@ class WebSocketManager {
       ws.send(JSON.stringify({ event:'matchmaking_status', status:'cancelled' }));
     }
   }
+  
+  async handleCancelMatch(ws, { matchId }) {
+    if (!ws.userId) {
+      return ws.send(JSON.stringify({ event: 'error', message: 'Not authenticated' }));
+    }
+  
+    const match = this.activeMatches.get(matchId);
+    if (!match) {
+      return ws.send(JSON.stringify({ event: 'error', message: 'Match not found or already canceled' }));
+    }
+  
+    // Confirm user is in the match
+    const isPlayerInMatch = [match.player1.id, match.player2.id].includes(ws.userId);
+    if (!isPlayerInMatch) {
+      return ws.send(JSON.stringify({ event: 'error', message: 'You are not part of this match' }));
+    }
+  
+    // Notify both players
+    const cancelPayload = {
+      event: 'match_cancelled',
+      matchId,
+      cancelledBy: ws.userId
+    };
+  
+    [match.player1.id, match.player2.id].forEach((uid) => {
+      const client = this.connected.get(uid);
+      if (client) client.send(JSON.stringify(cancelPayload));
+    });
+
+    const isP1=ws.userId===match.player1.id;
+
+    const ratings = this.eloSystem.calculate(
+      match.player1.eloRating,
+      match.player2.eloRating,
+      isP1
+    );
+    match.player1.newEloRating = ratings.player1NewRating;
+    match.player2.newEloRating = ratings.player2NewRating;
+
+    // Persist to DB
+    await prisma.match.update({
+      where: { id: matchId },
+      data: {
+        winnerId: isP1?match.player1.id:match.player2.id,
+        endTime: new Date(),
+      }
+    });
+    await prisma.user.update({ where:{ id: match.player1.id }, data:{ eloRating: ratings.player1NewRating }});
+    await prisma.user.update({ where:{ id: match.player2.id }, data:{ eloRating: ratings.player2NewRating }});
+  
+    // Remove match from activeMatches
+    this.activeMatches.delete(matchId);
+  }
+  
 
   async handleSubmit(ws, { matchId, code, language }) {
     if (!ws.userId) return ws.send(JSON.stringify({ event:'error', message:'Not authenticated' }));
