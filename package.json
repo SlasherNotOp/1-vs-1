@@ -23,6 +23,7 @@
     "ws": "^8.18.2"
   },
   "devDependencies": {
+    "@types/node": "^22.15.17",
     "prisma": "^6.7.0"
   }
 }
