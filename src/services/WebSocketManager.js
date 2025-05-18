@@ -164,8 +164,12 @@ class WebSocketManager {
 
     ws.send(JSON.stringify({ event:'submission_status', status:'processing' }));
     const testCases = await prisma.testCase.findMany({ where:{ problemId: match.problem.id }});
+    console.log(testCases,'testCases')
     const tokens = await this.judgeService.submitCode(code, language, testCases);
+    console.log(tokens,'tokens')
     const results = await this.judgeService.getSubmissionResults(tokens);
+    console.log(results,'results')
+
 
     if (results.allTestsPassed) {
       const isP1 = match.player1.id === ws.userId;
