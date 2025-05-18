@@ -32,6 +32,8 @@ class Judge0Service {
     const results = await Promise.all(
       tokens.map(t => axios.get(`${this.apiUrl}/submissions/${t}`))
     );
+
+    console.log('results.toString()',results,'results.toString()')
     const allPassed = results.every(r =>
       r.data.status.id === 3 &&
       r.data.stdout?.trim() === r.data.expected_output?.trim()
@@ -42,6 +44,14 @@ class Judge0Service {
     ).length;
     return { allTestsPassed: allPassed, passedTests: passed, totalTests: tokens.length, details: results.map(r => r.data) };
   }
+  async getSubmissionResult(token) {
+    const result = await axios.get(`${this.apiUrl}/submissions/${token}`);
+    console.log(`${this.apiUrl}/submissions/${token}`,'${this.apiUrl}/submissions/${token}')
+
+
+    return result;
+  }
+  
 }
 
 module.exports = { Judge0Service };

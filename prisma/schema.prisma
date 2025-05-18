@@ -5,6 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 generator client {
   provider = "prisma-client-js"
+  output   = "./node_modules/@prisma/client"
 }
 
 datasource db {
@@ -13,15 +14,16 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  username   String   @unique
-  email      String   @unique
+  id         String       @id @default(uuid())
+  username   String       @unique
+  email      String       @unique
   password   String
-  eloRating  Int      @default(1000)
-  createdAt  DateTime @default(now())
-  matches1   Match[]  @relation("player1")
-  matches2   Match[]  @relation("player2")
-  wonMatches Match[]  @relation("winner")
+  eloRating  Int          @default(1000)
+  createdAt  DateTime     @default(now())
+  matches1   Match[]      @relation("player1")
+  matches2   Match[]      @relation("player2")
+  wonMatches Match[]      @relation("winner")
+  Submission Submission[]
 }
 
 model Problem {
@@ -44,14 +46,14 @@ model TestCase {
 }
 
 model Match {
-  id              String    @id @default(uuid())
-  player1         User      @relation("player1", fields: [player1Id], references: [id])
+  id              String       @id @default(uuid())
+  player1         User         @relation("player1", fields: [player1Id], references: [id])
   player1Id       String
-  player2         User      @relation("player2", fields: [player2Id], references: [id])
+  player2         User         @relation("player2", fields: [player2Id], references: [id])
   player2Id       String
-  winner          User?     @relation("winner", fields: [winnerId], references: [id])
+  winner          User?        @relation("winner", fields: [winnerId], references: [id])
   winnerId        String?
-  problem         Problem   @relation(fields: [problemId], references: [id])
+  problem         Problem      @relation(fields: [problemId], references: [id])
   problemId       Int
   startTime       DateTime
   endTime         DateTime?
@@ -59,5 +61,27 @@ model Match {
   player2Solution String?
   player1Language String?
   player2Language String?
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime     @default(now())
+  Submission      Submission[]
+}
+
+model Submission {
+  id        String   @id @default(uuid())
+  match     Match    @relation(fields: [matchId], references: [id])
+  matchId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  language  String
+  code      String
+  createdAt DateTime @default(now())
+  tokens    Token[]
+}
+
+model Token {
+  id            String     @id
+  submission    Submission @relation(fields: [submissionId], references: [id])
+  submissionId  String
+  testCaseIndex Int
+  status        String     @default("pending")
+  createdAt     DateTime   @default(now())
 }
