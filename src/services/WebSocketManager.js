@@ -303,6 +303,10 @@ class WebSocketManager {
       );
 
     const tokens = await prisma.token.findMany({ where: { submissionId } });
+    const submission = await prisma.submission.findFirst({ where: { id:submissionId } });
+    
+
+
   
     const results = await Promise.all(
       tokens.map(async (token) => {
@@ -316,13 +320,25 @@ class WebSocketManager {
     );
   
     const allPassed = results.every(r => r.data.status.description === 'Accepted');
+
+    //this is matchId
+    const currentMatch= this.activeMatches.get(submission.matchId)
+
+    console.log(currentMatch,'currentMatch')
+    
+
+
+
     ws.send(
-      JSON.stringify({
-        allTestsPassed: allPassed,
-        passedTests: results.filter(r => r.data.status.description === 'Accepted').length,
-        totalTests: results.length
-      })
+      JSON.stringify(currentMatch)
     );
+    // ws.send(
+    //   JSON.stringify({
+    //     allTestsPassed: allPassed,
+    //     passedTests: results.filter(r => r.data.status.description === 'Accepted').length,
+    //     totalTests: results.length
+    //   })
+    // );
 
     return {
       allTestsPassed: allPassed,

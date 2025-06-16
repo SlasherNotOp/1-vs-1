@@ -9,9 +9,11 @@ const prisma = require('./models/prismaClient');
 const { AuthController } = require('./controllers/AuthController');
 const { UserController } = require('./controllers/UserController');
 const { MatchController } = require('./controllers/MatchController');
+const { CodeController } = require('./controllers/CodeController');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const matchRoutes = require('./routes/match.routes');
+const codeRoutes = require('./routes/code.routes');
 
 // WSS Manager
 const { WebSocketManager } = require('./services/WebSocketManager');
@@ -24,6 +26,7 @@ app.use(express.json());
 const authController = new AuthController(prisma);
 const userController = new UserController(prisma);
 const matchController = new MatchController(prisma);
+const codeController = new CodeController(prisma);
 
 app.get('/',(req,res)=>{
   res.send('1vs1 is working')
@@ -33,6 +36,7 @@ app.get('/',(req,res)=>{
 app.use('/api/auth', authRoutes(authController));
 app.use('/api/user', userRoutes(userController));
 app.use('/api/match', matchRoutes(matchController));
+app.use('/api/code', codeRoutes(codeController));
 
 // Create HTTP server...
 const server = http.createServer(app);
