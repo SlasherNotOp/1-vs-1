@@ -329,16 +329,16 @@ class WebSocketManager {
 
 
 
-    ws.send(
-      JSON.stringify(currentMatch)
-    );
     // ws.send(
-    //   JSON.stringify({
-    //     allTestsPassed: allPassed,
-    //     passedTests: results.filter(r => r.data.status.description === 'Accepted').length,
-    //     totalTests: results.length
-    //   })
+    //   JSON.stringify(currentMatch)
     // );
+    ws.send(
+      JSON.stringify({
+        allTestsPassed: allPassed,
+        passedTests: results.filter(r => r.data.status.description === 'Accepted').length,
+        totalTests: results.length
+      })
+    );
 
     return {
       allTestsPassed: allPassed,
