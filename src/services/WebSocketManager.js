@@ -324,6 +324,8 @@ class WebSocketManager {
     //this is matchId
     const currentMatch= this.activeMatches.get(submission.matchId)
 
+    const matchId=submission.matchId;
+
     console.log(currentMatch,'currentMatch')
     
 
@@ -339,6 +341,46 @@ class WebSocketManager {
         totalTests: results.length
       })
     );
+
+    
+
+    const isP1 = currentMatch.player1.id === ws.userId;
+      const winner = isP1 ? currentMatch.player1 : currentMatch.player2;
+      currentMatch.winner = winner;
+
+      const ratings = this.eloSystem.calculate(
+        currentMatch.player1.eloRating,
+        currentMatch.player2.eloRating,
+        isP1
+      );
+      currentMatch.player1.newEloRating = ratings.player1NewRating;
+      currentMatch.player2.newEloRating = ratings.player2NewRating;
+
+      const language= submission.language;
+      const code=submission.code;
+
+            // Persist to DB
+      await prisma.match.update({
+        where: { id: matchId },
+        data: {
+          winnerId: winner.id,
+          endTime: new Date(),
+          player1Language: isP1 ? language : currentMatch.player1Language,
+          player2Language: isP1 ? currentMatch.player2Language : language,
+          player1Solution: isP1 ? code : currentMatch.player1Solution,
+          player2Solution: isP1 ? currentMatch.player2Solution : code,
+        },
+      });
+      await prisma.user.update({
+        where: { id: currentMatch.player1.id },
+        data: { eloRating: ratings.player1NewRating },
+      });
+      await prisma.user.update({
+        where: { id: currentMatch.player2.id },
+        data: { eloRating: ratings.player2NewRating },
+      });
+
+      this._notifyMatchResult(currentMatch, winner.id, ratings);
 
     return {
       allTestsPassed: allPassed,
